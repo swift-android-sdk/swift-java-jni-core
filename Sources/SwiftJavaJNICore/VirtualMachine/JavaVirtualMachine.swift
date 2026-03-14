@@ -476,7 +476,7 @@ func systemJavaHome() -> String? {
 /// Located the shared library that includes the `JNI_GetCreatedJavaVMs` and `JNI_CreateJavaVM` entry points to the `JNINativeInterface` function table
 private func loadLibJava() throws -> DylibType {
   #if os(Android)
-  for libname in ["libart.so", "libdvm.so", "libnativehelper.so"] {
+  for libname in ["libnativehelper.so", "libart.so", "libdvm.so", "libjvm.so"] {
     if let lib = dlopen(libname, RTLD_NOW) {
       return lib
     }
