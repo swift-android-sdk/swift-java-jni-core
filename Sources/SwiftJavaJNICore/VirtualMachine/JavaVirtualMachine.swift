@@ -280,7 +280,8 @@ extension JavaVirtualMachine {
       }
 
       typealias GetCreatedJavaVMs = @convention(c) (_ pvm: UnsafeMutablePointer<JavaVMPointer?>, _ count: Int32, _ num: UnsafeMutablePointer<Int32>) -> jint
-      guard let getCreatedJavaVMs: GetCreatedJavaVMs = symbol(try loadLibJava(), "JNI_GetCreatedJavaVMs") else {
+      // first try to load the symbol from the global table in the event that it is already present (like on Android pre-API-29)
+      guard let getCreatedJavaVMs: GetCreatedJavaVMs = try symbol(nil, "JNI_GetCreatedJavaVMs") ?? symbol(loadLibJava(), "JNI_GetCreatedJavaVMs") else {
         throw VMError.cannotLoadGetCreatedJavaVMs
       }
 
@@ -414,8 +415,22 @@ private func symbol<T>(_ handle: DylibType, _ name: String) -> T? {
 #else
 private typealias DylibType = UnsafeMutableRawPointer
 
+/// The value of `RTLD_DEFAULT` on this platform.
+///
+/// This value is provided because `errno` is a complex macro on some platforms
+/// and cannot be imported directly into Swift. As well, `RTLD_DEFAULT` is only
+/// defined on Linux when `_GNU_SOURCE` is defined, so it is not sufficient to
+/// declare a wrapper function in the internal module's Stubs.h file.
+#if os(Android) && _pointerBitWidth(_32)
+private nonisolated(unsafe) let RTLD_DEFAULT = DylibType(bitPattern: UInt(0xFFFFFFFF))
+#elseif os(Linux) || os(Android)
+private nonisolated(unsafe) let RTLD_DEFAULT = DylibType(bitPattern: 0)
+#else
+private nonisolated(unsafe) let RTLD_DEFAULT = DylibType(bitPattern: -2)
+#endif
+
 private func symbol<T>(_ handle: DylibType?, _ name: String) -> T? {
-  guard let result = dlsym(handle, name) else {
+  guard let result = dlsym(handle ?? RTLD_DEFAULT, name) else {
     return nil
   }
   return unsafeBitCast(result, to: T.self)
@@ -459,17 +474,14 @@ func systemJavaHome() -> String? {
 }
 
 /// Located the shared library that includes the `JNI_GetCreatedJavaVMs` and `JNI_CreateJavaVM` entry points to the `JNINativeInterface` function table
-private func loadLibJava() throws -> DylibType? {
+private func loadLibJava() throws -> DylibType {
   #if os(Android)
   for libname in ["libart.so", "libdvm.so", "libnativehelper.so"] {
     if let lib = dlopen(libname, RTLD_NOW) {
       return lib
     }
   }
-  // fall back to the global space (https://github.com/swiftlang/swift-java/issues/419)
-  return nil
-  #endif
-
+  #else
   guard let javaHome = systemJavaHome() else {
     throw JavaVirtualMachine.VMError.javaHomeNotFound
   }
@@ -513,9 +525,9 @@ private func loadLibJava() throws -> DylibType? {
   let dylib = dlopen(libjvmPath.path, RTLD_NOW)
   #endif
 
-  guard let dylib else {
-    throw JavaVirtualMachine.VMError.libjvmNotLoaded
+  if let dylib {
+    return dylib
   }
-
-  return dylib
+  #endif
+  throw JavaVirtualMachine.VMError.libjvmNotLoaded
 }
