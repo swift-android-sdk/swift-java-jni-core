@@ -12,8 +12,7 @@ jobs:
       fail-fast: false
       matrix:
         os: ['ubuntu-24.04', 'macos-15-intel']
-        #swift: ['nightly-6.3']
-        swift: ['nightly-main']
+        toolchain: ['nightly-6.3']
         arch: ['x86_64']
         sdk: ['28', '29', '31', '33']
     runs-on: ${{ matrix.os }}
@@ -23,9 +22,9 @@ jobs:
       #- uses: skiptools/actions/setup-skip@v1
       - uses: skiptools/actions/setup-skip@emulator-testing
         with:
-          swift-version: ${{ matrix.swift }}
+          #swift-version: ${{ matrix.toolchain }}
           install-swift-android-sdk: true
-          swift-android-sdk-version: ${{ matrix.swift }}
+          swift-android-sdk-version: ${{ matrix.toolchain }}
           gradle-version: 'none'
       - name: "Build Swift Package for Android"
         run: |
