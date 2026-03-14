@@ -414,7 +414,7 @@ private func symbol<T>(_ handle: DylibType, _ name: String) -> T? {
 #else
 private typealias DylibType = UnsafeMutableRawPointer
 
-private func symbol<T>(_ handle: DylibType, _ name: String) -> T? {
+private func symbol<T>(_ handle: DylibType?, _ name: String) -> T? {
   guard let result = dlsym(handle, name) else {
     return nil
   }
@@ -459,13 +459,15 @@ func systemJavaHome() -> String? {
 }
 
 /// Located the shared library that includes the `JNI_GetCreatedJavaVMs` and `JNI_CreateJavaVM` entry points to the `JNINativeInterface` function table
-private func loadLibJava() throws -> DylibType {
+private func loadLibJava() throws -> DylibType? {
   #if os(Android)
   for libname in ["libart.so", "libdvm.so", "libnativehelper.so"] {
     if let lib = dlopen(libname, RTLD_NOW) {
       return lib
     }
   }
+  // fall back to the global space (https://github.com/swiftlang/swift-java/issues/419)
+  return nil
   #endif
 
   guard let javaHome = systemJavaHome() else {
