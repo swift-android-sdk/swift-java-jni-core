@@ -19,18 +19,21 @@ jobs:
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v6
-      - uses: skiptools/actions/setup-skip@v1
+      #- uses: skiptools/actions/setup-skip@v1
+      - uses: skiptools/actions/setup-skip@emulator-testing
         with:
-          install-swift-android-sdk: true
-          gradle-version: 'none'
           swift-version: ${{ matrix.swift }}
+          install-swift-android-sdk: true
           swift-android-sdk-version: ${{ matrix.swift }}
+          gradle-version: 'none'
       - name: "Build Swift Package for Android"
         run: |
           ANDROID_NDK_ROOT="" ANDROID_SDK_VERSION=${{ matrix.sdk }} skip android build --arch ${{ matrix.arch }} --android-api-level ${{ matrix.sdk }}
-      - name: "Install and launch emulator"
+      - name: "Create Android emulator"
         run: |
           skip android emulator create --android-api-level ${{ matrix.sdk }}
+      - name: "Launch emulator"
+        run: |
           skip android emulator launch --background
       - name: "Test Swift package on emulator"
         run: |
