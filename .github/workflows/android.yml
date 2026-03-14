@@ -28,9 +28,9 @@ jobs:
         sdk:
           - 'nightly-6.3'
         ndk:
-          - '27d'
-          #- '28c'
-          #- '29'
+          - 'r27d'
+          #- 'r28c'
+          #- 'r29'
     runs-on: 'ubuntu-24.04'
     timeout-minutes: 30
     steps:
@@ -38,8 +38,6 @@ jobs:
       # Manual emulator setup until we can customize github-workflows API levels
       # https://github.com/swiftlang/github-workflows/issues/226
       - uses: skiptools/actions/setup-skip@v1
-        with:
-          gradle-version: 'none'
       - name: "Install Swift SDK for Android"
         run: |
           skip android sdk install --version "${{ matrix.sdk }}" --ndk-version "${{ matrix.ndk }}"
