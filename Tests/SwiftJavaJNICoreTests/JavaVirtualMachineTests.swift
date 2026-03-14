@@ -25,6 +25,8 @@ import class Foundation.ProcessInfo
 struct JavaVirtualMachineTests {
 
   static var isSupportedPlatform: Bool {
+    return true // override for Android testing
+
     #if os(Android)
     // Android tests are not currently run within an .apk and so do not have any ambient JVM.
     // This can be overridden for a test harness that supports running within an .apk, like:
