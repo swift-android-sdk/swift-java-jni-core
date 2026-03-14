@@ -29,11 +29,14 @@ jobs:
       - name: "Build Swift Package for Android"
         run: |
           ANDROID_NDK_ROOT="" ANDROID_SDK_VERSION=${{ matrix.sdk }} skip android build --arch ${{ matrix.arch }} --android-api-level ${{ matrix.sdk }}
-      - name: "Create Android emulator"
+      - name: "Create and Launch Android emulator"
         run: |
+          export ANDROID_USER_HOME=$HOME/.android
+          export ANDROID_EMULATOR_HOME=$ANDROID_USER_HOME
+          export ANDROID_AVD_HOME=$ANDROID_EMULATOR_HOME/avd
+
           skip android emulator create --android-api-level ${{ matrix.sdk }}
-      - name: "Launch emulator"
-        run: |
+          skip android emulator list --verbose
           skip android emulator launch --background
       - name: "Test Swift package on emulator"
         run: |
