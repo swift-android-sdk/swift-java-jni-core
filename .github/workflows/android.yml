@@ -11,9 +11,6 @@ jobs:
       fail-fast: false
       matrix:
         api:
-          # TODO: requires 
-          #- '26'
-          #- '27'
           - '28'
           # Cannot run against 29 and 30 without bootstrapping JavaVirtualMachine.setShared
           # https://github.com/swiftlang/swift-java/issues/419
