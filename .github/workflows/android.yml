@@ -15,9 +15,9 @@ jobs:
           # https://github.com/swiftlang/swift/pull/86957
           #- '26'
           #- '27'
-          - '28'
-          # Cannot run against 29 and 30 without bootstrapping JavaVirtualMachine.setShared
+          # Cannot run against 28-30 without bootstrapping JavaVirtualMachine.setShared
           # https://github.com/swiftlang/swift-java/issues/419
+          #- '28'
           #- '29'
           #- '30'
           - '31'
@@ -28,6 +28,7 @@ jobs:
           - '36'
         sdk:
           - 'nightly-6.3'
+          - 'nightly-main'
         ndk:
           - 'r27d'
           #- 'r28c'
